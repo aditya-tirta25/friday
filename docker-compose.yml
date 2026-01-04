@@ -1,0 +1,31 @@
+services:
+  builder:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: friday:latest
+    command: echo "Build complete"
+  init:
+    image: friday:latest
+    container_name: friday_init
+    command: python manage.py migrate
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      - builder
+
+  friday:
+    image: friday:latest
+    container_name: friday
+    command: python manage.py runserver 0.0.0.0:8000    
+    volumes:
+      - .:/home/django/app
+      # - static_volume:/home/django/app/staticfiles
+      # - media_volume:/home/django/app/media
+    depends_on:
+      - init
+    restart: always
+    ports:
+      - "9001:8000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"

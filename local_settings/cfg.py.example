@@ -1,0 +1,20 @@
+"""
+Local settings configuration example.
+
+Copy this file to cfg.py and update with your actual credentials.
+This file should NOT be committed to version control.
+"""
+
+DATABASE = {
+    'NAME': 'your_db_name',
+    'USER': 'your_db_user',
+    'PASSWORD': 'your-db-password-here',
+    'HOST': 'db',  # Use 'db' for Docker, 'localhost' for local dev
+    'PORT': '5432',
+}
+
+MATRIX_HOMESERVER = 'your_matrix_homeserver_url'
+MATRIX_USERNAME = 'username_you_used_for_matrix_login'
+MATRIX_PASSWORD = 'your-matrix-password-here'
+
+ANTHROPIC_API_KEY = 'sk-ant-your-api-key-here'
