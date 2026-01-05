@@ -16,8 +16,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
-# Prepare media & static directories
-RUN mkdir -p /home/${DOCKER_USER}/app/media \
-  && chown -R ${DOCKER_USER}:${DOCKER_USER} /home/${DOCKER_USER}/app/media
+# Set ownership for all app files
+RUN chown -R ${DOCKER_USER}:${DOCKER_USER} /home/${DOCKER_USER}/app
 
 USER $DOCKER_USER
