@@ -1,7 +1,8 @@
+from typing import Optional, List
 from ninja import Router
 from ninja.errors import HttpError
-from typing import Optional
 
+from core.auth import BearerAuth
 from core.schemas import (
     RoomSchema,
     RoomListResponse,
@@ -183,3 +184,31 @@ def summarize_room_conversation(request, matrix_room_id: str):
         raise HttpError(404, str(e))
     except Exception as e:
         raise HttpError(500, f"Summary generation failed: {str(e)}")
+
+
+@router.get("/{room_id}/messages", auth=BearerAuth())
+def get_room_messages(
+    request,
+    room_id: str,
+    limit: int = 100,
+):
+    """
+    Get messages from a specific Matrix room.
+
+    Requires Authorization header with Bearer token.
+
+    Args:
+        room_id: The Matrix room ID (e.g., "!abc123:matrix.org")
+        limit: Maximum number of messages to fetch (default: 100)
+    """
+    room_service = RoomService()
+
+    try:
+        messages = room_service.get_messages(
+            room_id=room_id,
+            access_token=request.auth,
+            limit=limit,
+        )
+        return {"messages": messages, "total": len(messages)}
+    except Exception as e:
+        raise HttpError(500, f"Failed to fetch messages: {str(e)}")

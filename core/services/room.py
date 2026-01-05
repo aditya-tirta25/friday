@@ -1,4 +1,6 @@
 import json
+import requests
+import urllib.parse
 from typing import List, Dict, Any, Optional
 from datetime import datetime
 from django.utils import timezone
@@ -75,6 +77,79 @@ class RoomService:
     def get_all_rooms(self) -> List[Room]:
         """Get all rooms."""
         return list(Room.objects.all().order_by('-created_at'))
+
+    def get_messages(
+        self,
+        room_id: str,
+        access_token: str,
+        limit: int = 100,
+        from_timestamp: Optional[datetime] = None,
+    ) -> List[Dict[str, Any]]:
+        """
+        Fetch messages from a Matrix room using Synapse Admin API.
+
+        Args:
+            room_id: The Matrix room ID (e.g., "!abc123:matrix.org")
+            access_token: Matrix access token for authentication
+            limit: Maximum number of messages to fetch
+            from_timestamp: Only fetch messages after this timestamp
+
+        Returns:
+            List of message dictionaries
+        """
+        homeserver = settings.MATRIX_CONFIG['HOMESERVER']
+        encoded_room_id = urllib.parse.quote(room_id)
+        headers = {"Authorization": f"Bearer {access_token}"}
+
+        from_token = None
+        if from_timestamp:
+            ts_ms = int(from_timestamp.timestamp() * 1000)
+            ts_url = f"{homeserver}/_synapse/admin/v1/rooms/{encoded_room_id}/timestamp_to_event"
+            ts_response = requests.get(
+                ts_url,
+                headers=headers,
+                params={"ts": ts_ms, "dir": "f"}
+            )
+            if ts_response.ok:
+                ts_data = ts_response.json()
+                from_token = ts_data.get('event_id')
+
+        messages = []
+        next_token = from_token
+
+        while True:
+            url = f"{homeserver}/_synapse/admin/v1/rooms/{encoded_room_id}/messages"
+            params = {"limit": limit, "dir": "f"}
+            if next_token:
+                params["from"] = next_token
+
+            response = requests.get(url, headers=headers, params=params)
+            response.raise_for_status()
+
+            data = response.json()
+            chunk = data.get('chunk', [])
+
+            for event in chunk:
+                if event.get('type') != 'm.room.message':
+                    continue
+
+                origin_ts = event.get('origin_server_ts', 0)
+                event_time = datetime.fromtimestamp(origin_ts / 1000, tz=timezone.utc)
+                content = event.get('content', {})
+
+                messages.append({
+                    'sender': event.get('sender', ''),
+                    'body': content.get('body', ''),
+                    'msgtype': content.get('msgtype', ''),
+                    'timestamp': event_time.isoformat(),
+                    'event_id': event.get('event_id', ''),
+                })
+
+            next_token = data.get('end')
+            if not next_token:
+                break
+
+        return messages
 
     def mark_as_checked(self, room_id: int, notes: Optional[str] = None) -> Room:
         """
