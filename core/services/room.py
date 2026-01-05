@@ -84,7 +84,7 @@ class RoomService:
         access_token: str,
         limit: int = 100,
         from_timestamp: Optional[datetime] = None,
-    ) -> List[Dict[str, Any]]:
+    ) -> Dict[str, Any]:
         """
         Fetch messages from a Matrix room using Synapse Admin API.
 
@@ -95,61 +95,76 @@ class RoomService:
             from_timestamp: Only fetch messages after this timestamp
 
         Returns:
-            List of message dictionaries
+            Dictionary with messages and debug info
         """
         homeserver = settings.MATRIX_CONFIG['HOMESERVER']
         encoded_room_id = urllib.parse.quote(room_id)
         headers = {"Authorization": f"Bearer {access_token}"}
 
+        debug = {
+            "room_id": room_id,
+            "encoded_room_id": encoded_room_id,
+            "homeserver": homeserver,
+            "limit": limit,
+        }
+
         from_token = None
         if from_timestamp:
             ts_ms = int(from_timestamp.timestamp() * 1000)
             ts_url = f"{homeserver}/_synapse/admin/v1/rooms/{encoded_room_id}/timestamp_to_event"
+            debug["timestamp_url"] = ts_url
             ts_response = requests.get(
                 ts_url,
                 headers=headers,
                 params={"ts": ts_ms, "dir": "f"}
             )
+            debug["timestamp_response_status"] = ts_response.status_code
             if ts_response.ok:
                 ts_data = ts_response.json()
                 from_token = ts_data.get('event_id')
+                debug["from_token"] = from_token
 
         messages = []
         next_token = from_token
 
-        while True:
-            url = f"{homeserver}/_synapse/admin/v1/rooms/{encoded_room_id}/messages"
-            params = {"limit": limit, "dir": "f"}
-            if next_token:
-                params["from"] = next_token
+        url = f"{homeserver}/_synapse/admin/v1/rooms/{encoded_room_id}/messages"
+        params = {"limit": limit, "dir": "b"}
+        if next_token:
+            params["from"] = next_token
 
-            response = requests.get(url, headers=headers, params=params)
-            response.raise_for_status()
+        debug["messages_url"] = url
+        debug["messages_params"] = params
 
-            data = response.json()
-            chunk = data.get('chunk', [])
+        response = requests.get(url, headers=headers, params=params)
+        debug["messages_response_status"] = response.status_code
 
-            for event in chunk:
-                if event.get('type') != 'm.room.message':
-                    continue
+        if not response.ok:
+            debug["messages_response_error"] = response.text
+            return {"messages": [], "total": 0, "debug": debug}
 
-                origin_ts = event.get('origin_server_ts', 0)
-                event_time = datetime.fromtimestamp(origin_ts / 1000, tz=timezone.utc)
-                content = event.get('content', {})
+        data = response.json()
+        chunk = data.get('chunk', [])
+        debug["chunk_count"] = len(chunk)
+        debug["raw_response_keys"] = list(data.keys())
 
-                messages.append({
-                    'sender': event.get('sender', ''),
-                    'body': content.get('body', ''),
-                    'msgtype': content.get('msgtype', ''),
-                    'timestamp': event_time.isoformat(),
-                    'event_id': event.get('event_id', ''),
-                })
+        for event in chunk:
+            if event.get('type') != 'm.room.message':
+                continue
 
-            next_token = data.get('end')
-            if not next_token:
-                break
+            origin_ts = event.get('origin_server_ts', 0)
+            event_time = datetime.fromtimestamp(origin_ts / 1000, tz=timezone.utc)
+            content = event.get('content', {})
 
-        return messages
+            messages.append({
+                'sender': event.get('sender', ''),
+                'body': content.get('body', ''),
+                'msgtype': content.get('msgtype', ''),
+                'timestamp': event_time.isoformat(),
+                'event_id': event.get('event_id', ''),
+            })
+
+        messages.reverse()
+        return {"messages": messages, "total": len(messages), "debug": debug}
 
     def mark_as_checked(self, room_id: int, notes: Optional[str] = None) -> Room:
         """

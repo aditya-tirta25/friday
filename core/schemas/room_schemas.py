@@ -70,3 +70,9 @@ class ConversationSummaryResponse(Schema):
     from_timestamp: Optional[datetime] = None
     to_timestamp: datetime
     check_log_id: int
+
+
+class RoomMessagesRequest(Schema):
+    """Request schema for fetching room messages."""
+    room_id: str
+    limit: int = 100

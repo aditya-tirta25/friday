@@ -8,6 +8,7 @@ from core.schemas.room_schemas import (
     TodoItem,
     ActionItem,
     ConversationSummaryResponse,
+    RoomMessagesRequest,
 )
 
 __all__ = [
@@ -20,4 +21,5 @@ __all__ = [
     'TodoItem',
     'ActionItem',
     'ConversationSummaryResponse',
+    'RoomMessagesRequest',
 ]
