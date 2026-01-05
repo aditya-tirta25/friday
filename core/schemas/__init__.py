@@ -14,6 +14,7 @@ from core.schemas.llm import (
     MessageItem,
     LLMContextRequest,
     LLMContextResponse,
+    LLMProcessResponse,
 )
 
 __all__ = [
@@ -30,4 +31,5 @@ __all__ = [
     'MessageItem',
     'LLMContextRequest',
     'LLMContextResponse',
+    'LLMProcessResponse',
 ]
