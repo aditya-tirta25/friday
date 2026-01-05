@@ -1,4 +1,4 @@
-from core.schemas.auth_schemas import LoginRequest, LoginResponse
+from core.schemas.auth_schemas import LoginResponse
 from core.schemas.room_schemas import (
     RoomSchema,
     RoomListResponse,
@@ -11,7 +11,6 @@ from core.schemas.room_schemas import (
 )
 
 __all__ = [
-    'LoginRequest',
     'LoginResponse',
     'RoomSchema',
     'RoomListResponse',
