@@ -19,7 +19,7 @@ def construct_llm_context(request, payload: LLMContextRequest):
     """
     llm_service = LLMService()
 
-    messages = [{"sender": m.sender, "content": m.content} for m in payload.messages]
+    messages = [{"sender": m.sender, "content": m.body} for m in payload.messages]
     context = llm_service.build_context(messages)
 
     return context
