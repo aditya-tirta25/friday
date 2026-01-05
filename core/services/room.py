@@ -16,8 +16,8 @@ class RoomService:
 
     def __init__(self):
         self.openai_client = OpenAI(
-            api_key=settings.OPENAI_CONFIG['API_KEY'],
-            base_url=settings.OPENAI_CONFIG['BASE_URL'],
+            api_key=settings.OPENAI_CONFIG["API_KEY"],
+            base_url=settings.OPENAI_CONFIG["BASE_URL"],
         )
         self.model = "gpt-4o-mini"  # Cost-effective, good for summarization
 
@@ -37,26 +37,25 @@ class RoomService:
         updated_rooms = 0
 
         for room_data in rooms_data:
-            room_id = room_data.get('room_id')
+            room_id = room_data.get("room_id")
             if not room_id:
                 continue
 
             room_created_at = None
-            if room_data.get('creation_ts'):
+            if room_data.get("creation_ts"):
                 room_created_at = datetime.fromtimestamp(
-                    room_data['creation_ts'] / 1000,
-                    tz=timezone.utc
+                    room_data["creation_ts"] / 1000, tz=timezone.utc
                 )
 
             room, created = Room.objects.update_or_create(
                 room_id=room_id,
                 defaults={
-                    'name': room_data.get('name', ''),
-                    'creator': room_data.get('creator', ''),
-                    'member_count': room_data.get('joined_members', 0),
-                    'room_created_at': room_created_at,
-                    'is_checked': False,
-                }
+                    "name": room_data.get("name", ""),
+                    "creator": room_data.get("creator", ""),
+                    "member_count": room_data.get("joined_members", 0),
+                    "room_created_at": room_created_at,
+                    "is_checked": False,
+                },
             )
 
             if created:
@@ -65,18 +64,18 @@ class RoomService:
                 updated_rooms += 1
 
         return {
-            'synced_count': new_rooms + updated_rooms,
-            'new_rooms': new_rooms,
-            'updated_rooms': updated_rooms,
+            "synced_count": new_rooms + updated_rooms,
+            "new_rooms": new_rooms,
+            "updated_rooms": updated_rooms,
         }
 
     def get_unchecked_rooms(self) -> List[Room]:
         """Get all rooms that have not been checked."""
-        return list(Room.objects.filter(is_checked=False).order_by('-created_at'))
+        return list(Room.objects.filter(is_checked=False).order_by("-created_at"))
 
     def get_all_rooms(self) -> List[Room]:
         """Get all rooms."""
-        return list(Room.objects.all().order_by('-created_at'))
+        return list(Room.objects.all().order_by("-created_at"))
 
     def get_messages(
         self,
@@ -97,7 +96,7 @@ class RoomService:
         Returns:
             Dictionary with messages and total count
         """
-        homeserver = settings.MATRIX_CONFIG['HOMESERVER']
+        homeserver = settings.MATRIX_CONFIG["HOMESERVER"]
         encoded_room_id = urllib.parse.quote(room_id)
         headers = {"Authorization": f"Bearer {access_token}"}
 
@@ -106,13 +105,11 @@ class RoomService:
             ts_ms = int(from_timestamp.timestamp() * 1000)
             ts_url = f"{homeserver}/_synapse/admin/v1/rooms/{encoded_room_id}/timestamp_to_event"
             ts_response = requests.get(
-                ts_url,
-                headers=headers,
-                params={"ts": ts_ms, "dir": "f"}
+                ts_url, headers=headers, params={"ts": ts_ms, "dir": "f"}
             )
             if ts_response.ok:
                 ts_data = ts_response.json()
-                from_token = ts_data.get('event_id')
+                from_token = ts_data.get("event_id")
 
         messages = []
         next_token = from_token
@@ -126,23 +123,25 @@ class RoomService:
         response.raise_for_status()
 
         data = response.json()
-        chunk = data.get('chunk', [])
+        chunk = data.get("chunk", [])
 
         for event in chunk:
-            if event.get('type') != 'm.room.message':
+            if event.get("type") != "m.room.message":
                 continue
 
-            origin_ts = event.get('origin_server_ts', 0)
+            origin_ts = event.get("origin_server_ts", 0)
             event_time = datetime.fromtimestamp(origin_ts / 1000, tz=timezone.utc)
-            content = event.get('content', {})
+            content = event.get("content", {})
 
-            messages.append({
-                'sender': event.get('sender', ''),
-                'body': content.get('body', ''),
-                'msgtype': content.get('msgtype', ''),
-                'timestamp': event_time.isoformat(),
-                'event_id': event.get('event_id', ''),
-            })
+            messages.append(
+                {
+                    "sender": event.get("sender", ""),
+                    "body": content.get("body", ""),
+                    "msgtype": content.get("msgtype", ""),
+                    "timestamp": event_time.isoformat(),
+                    "event_id": event.get("event_id", ""),
+                }
+            )
 
         messages.reverse()
         return {"messages": messages, "total": len(messages)}
@@ -181,20 +180,23 @@ class RoomService:
             Dictionary with summary text and todo list
         """
         if not rooms:
-            return {
-                'summary': 'No unchecked rooms to review.',
-                'todo_list': []
-            }
+            return {"summary": "No unchecked rooms to review.", "todo_list": []}
 
         room_info = []
         for room in rooms:
-            room_info.append({
-                'room_id': room.room_id,
-                'name': room.name or 'Unnamed Room',
-                'creator': room.creator,
-                'member_count': room.member_count,
-                'created_at': room.room_created_at.isoformat() if room.room_created_at else 'Unknown',
-            })
+            room_info.append(
+                {
+                    "room_id": room.room_id,
+                    "name": room.name or "Unnamed Room",
+                    "creator": room.creator,
+                    "member_count": room.member_count,
+                    "created_at": (
+                        room.room_created_at.isoformat()
+                        if room.room_created_at
+                        else "Unknown"
+                    ),
+                }
+            )
 
         prompt = f"""You are an assistant helping to manage Matrix chat rooms.
 Analyze the following list of unchecked rooms and provide:
@@ -222,16 +224,14 @@ Focus on identifying rooms that might need immediate attention (many members, ol
         response = self.openai_client.chat.completions.create(
             model=self.model,
             max_tokens=1024,
-            messages=[
-                {"role": "user", "content": prompt}
-            ]
+            messages=[{"role": "user", "content": prompt}],
         )
 
         response_text = response.choices[0].message.content
 
         try:
-            start_idx = response_text.find('{')
-            end_idx = response_text.rfind('}') + 1
+            start_idx = response_text.find("{")
+            end_idx = response_text.rfind("}") + 1
             if start_idx != -1 and end_idx > start_idx:
                 json_str = response_text[start_idx:end_idx]
                 result = json.loads(json_str)
@@ -240,22 +240,20 @@ Focus on identifying rooms that might need immediate attention (many members, ol
             pass
 
         return {
-            'summary': response_text,
-            'todo_list': [
+            "summary": response_text,
+            "todo_list": [
                 {
-                    'room_id': room.room_id,
-                    'room_name': room.name or 'Unnamed',
-                    'action': 'Review room',
-                    'priority': 'medium'
+                    "room_id": room.room_id,
+                    "room_name": room.name or "Unnamed",
+                    "action": "Review room",
+                    "priority": "medium",
                 }
                 for room in rooms
-            ]
+            ],
         }
 
     def generate_conversation_summary(
-        self,
-        room: Room,
-        messages: List[Dict[str, Any]]
+        self, room: Room, messages: List[Dict[str, Any]]
     ) -> Dict[str, Any]:
         """
         Generate an AI-powered summary of room conversation with action items.
@@ -268,10 +266,7 @@ Focus on identifying rooms that might need immediate attention (many members, ol
             Dictionary with summary text and action_items list
         """
         if not messages:
-            return {
-                'summary': 'No new messages to summarize.',
-                'action_items': []
-            }
+            return {"summary": "No new messages to summarize.", "action_items": []}
 
         # Format messages for the prompt
         formatted_messages = []
@@ -315,17 +310,15 @@ Focus on:
         response = self.openai_client.chat.completions.create(
             model=self.model,
             max_tokens=2048,
-            messages=[
-                {"role": "user", "content": prompt}
-            ]
+            messages=[{"role": "user", "content": prompt}],
         )
 
         response_text = response.choices[0].message.content
 
         # Parse JSON from response
         try:
-            start_idx = response_text.find('{')
-            end_idx = response_text.rfind('}') + 1
+            start_idx = response_text.find("{")
+            end_idx = response_text.rfind("}") + 1
             if start_idx != -1 and end_idx > start_idx:
                 json_str = response_text[start_idx:end_idx]
                 result = json.loads(json_str)
@@ -334,15 +327,10 @@ Focus on:
             pass
 
         # Fallback if JSON parsing fails
-        return {
-            'summary': response_text,
-            'action_items': []
-        }
+        return {"summary": response_text, "action_items": []}
 
     def summarize_room_conversation(
-        self,
-        matrix_room_id: str,
-        matrix_service: MatrixService
+        self, matrix_room_id: str, matrix_service: MatrixService
     ) -> Dict[str, Any]:
         """
         Full workflow: fetch messages, generate summary, store in database.
@@ -365,8 +353,7 @@ Focus on:
 
         # Fetch messages from Matrix
         messages = matrix_service.fetch_room_messages(
-            room_id=matrix_room_id,
-            from_timestamp=from_timestamp
+            room_id=matrix_room_id, from_timestamp=from_timestamp
         )
 
         # Generate AI summary
@@ -380,16 +367,16 @@ Focus on:
 
         check_log = RoomCheckLog.objects.create(
             room=room,
-            summary=summary_data.get('summary', ''),
-            notes=json.dumps(summary_data.get('action_items', []))
+            summary=summary_data.get("summary", ""),
+            notes=json.dumps(summary_data.get("action_items", [])),
         )
 
         return {
-            'room': room,
-            'summary': summary_data.get('summary', ''),
-            'action_items': summary_data.get('action_items', []),
-            'message_count': len(messages),
-            'from_timestamp': from_timestamp,
-            'to_timestamp': now,
-            'check_log_id': check_log.id,
+            "room": room,
+            "summary": summary_data.get("summary", ""),
+            "action_items": summary_data.get("action_items", []),
+            "message_count": len(messages),
+            "from_timestamp": from_timestamp,
+            "to_timestamp": now,
+            "check_log_id": check_log.id,
         }

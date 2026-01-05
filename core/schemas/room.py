@@ -5,6 +5,7 @@ from datetime import datetime
 
 class RoomSchema(Schema):
     """Schema for room data."""
+
     id: int
     room_id: str
     name: Optional[str] = None
@@ -19,12 +20,14 @@ class RoomSchema(Schema):
 
 class RoomListResponse(Schema):
     """Response for listing rooms."""
+
     rooms: List[RoomSchema]
     total_count: int
 
 
 class RoomSyncResponse(Schema):
     """Response for room sync operation."""
+
     synced_count: int
     new_rooms: int
     updated_rooms: int
@@ -33,6 +36,7 @@ class RoomSyncResponse(Schema):
 
 class TodoItem(Schema):
     """A single todo item for room review."""
+
     room_id: str
     room_name: Optional[str] = None
     action: str
@@ -41,6 +45,7 @@ class TodoItem(Schema):
 
 class ActionItem(Schema):
     """An action item extracted from conversation."""
+
     description: str
     assignee: Optional[str] = None
     due_date: Optional[str] = None
@@ -49,6 +54,7 @@ class ActionItem(Schema):
 
 class RoomSummaryResponse(Schema):
     """Response for unchecked rooms with AI summary."""
+
     rooms: List[RoomSchema]
     total_unchecked: int
     summary: str
@@ -57,12 +63,14 @@ class RoomSummaryResponse(Schema):
 
 class RoomCheckResponse(Schema):
     """Response for marking a room as checked."""
+
     room: RoomSchema
     message: str
 
 
 class ConversationSummaryResponse(Schema):
     """Response for room conversation summary."""
+
     room: RoomSchema
     summary: str
     action_items: List[ActionItem]
@@ -74,5 +82,6 @@ class ConversationSummaryResponse(Schema):
 
 class RoomMessagesRequest(Schema):
     """Request schema for fetching room messages."""
+
     room_id: str
     limit: int = 100

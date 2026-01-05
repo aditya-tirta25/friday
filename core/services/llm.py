@@ -30,7 +30,11 @@ class LLMService:
 
 {json.dumps(context, indent=2)}
 
-Based on the context above, provide a response following the output_format specified in the context"""
+IMPORTANT: When referring to senders in your response, you MUST use the names from sender_mapping.
+For example, if sender_mapping shows "@user:matrix.org": "yourself", refer to that sender as "kamu" or "you" (not "Pengirim" or generic terms).
+If sender_mapping shows a sender mapped to their own ID, use a friendly name based on that ID.
+
+Based on the context above, provide a response following the output_format specified in the context."""
 
         headers = {
             "Authorization": f"Bearer {self.api_key}",
