@@ -1,0 +1,42 @@
+{
+  "messages": [
+    {
+      "sender": "@aditya:matrix.tirta.me", // use value of MATRIX_ACTOR_ID
+      "content": "Test"
+    },
+    {
+      "sender": "@whatsapp_6282211222290:matrix.tirta.me",
+      "content": "👏"
+    }
+  ],
+  "sender_mapping": {
+    "@aditya:matrix.tirta.me" // use value of MATRIX_ACTOR_ID: "yourself",
+    "default": "use_sender_value"
+  },
+  "goals": {
+    "reply_generation": {
+      "direct_answer_if_possible": true,
+      "acknowledge_if_unclear": true
+    },
+    "task_extraction": {
+      "enabled": true,
+      "only_if_actionable": true
+    },
+    "conversation_summary": {
+      "enabled": true,
+      "length": "short"
+    }
+  },
+  "response_rules": {
+    "language": "same as sender",
+    "tone": "natural, polite, concise",
+    "emoji_usage": "only_if_user_used",
+    "no_markdown": true
+  },
+  "output_format": {
+    "summary": "string",
+    "reply": "string | null",
+    "needs_more_information": "boolean",
+    "todo_list": "array of strings | empty"
+  }
+}

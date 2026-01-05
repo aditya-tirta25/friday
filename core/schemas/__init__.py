@@ -1,5 +1,5 @@
-from core.schemas.auth_schemas import LoginResponse
-from core.schemas.room_schemas import (
+from core.schemas.auth import LoginResponse
+from core.schemas.room import (
     RoomSchema,
     RoomListResponse,
     RoomSyncResponse,
@@ -9,6 +9,11 @@ from core.schemas.room_schemas import (
     ActionItem,
     ConversationSummaryResponse,
     RoomMessagesRequest,
+)
+from core.schemas.llm import (
+    MessageItem,
+    LLMContextRequest,
+    LLMContextResponse,
 )
 
 __all__ = [
@@ -22,4 +27,7 @@ __all__ = [
     'ActionItem',
     'ConversationSummaryResponse',
     'RoomMessagesRequest',
+    'MessageItem',
+    'LLMContextRequest',
+    'LLMContextResponse',
 ]

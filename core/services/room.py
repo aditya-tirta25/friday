@@ -95,34 +95,24 @@ class RoomService:
             from_timestamp: Only fetch messages after this timestamp
 
         Returns:
-            Dictionary with messages and debug info
+            Dictionary with messages and total count
         """
         homeserver = settings.MATRIX_CONFIG['HOMESERVER']
         encoded_room_id = urllib.parse.quote(room_id)
         headers = {"Authorization": f"Bearer {access_token}"}
 
-        debug = {
-            "room_id": room_id,
-            "encoded_room_id": encoded_room_id,
-            "homeserver": homeserver,
-            "limit": limit,
-        }
-
         from_token = None
         if from_timestamp:
             ts_ms = int(from_timestamp.timestamp() * 1000)
             ts_url = f"{homeserver}/_synapse/admin/v1/rooms/{encoded_room_id}/timestamp_to_event"
-            debug["timestamp_url"] = ts_url
             ts_response = requests.get(
                 ts_url,
                 headers=headers,
                 params={"ts": ts_ms, "dir": "f"}
             )
-            debug["timestamp_response_status"] = ts_response.status_code
             if ts_response.ok:
                 ts_data = ts_response.json()
                 from_token = ts_data.get('event_id')
-                debug["from_token"] = from_token
 
         messages = []
         next_token = from_token
@@ -132,20 +122,11 @@ class RoomService:
         if next_token:
             params["from"] = next_token
 
-        debug["messages_url"] = url
-        debug["messages_params"] = params
-
         response = requests.get(url, headers=headers, params=params)
-        debug["messages_response_status"] = response.status_code
-
-        if not response.ok:
-            debug["messages_response_error"] = response.text
-            return {"messages": [], "total": 0, "debug": debug}
+        response.raise_for_status()
 
         data = response.json()
         chunk = data.get('chunk', [])
-        debug["chunk_count"] = len(chunk)
-        debug["raw_response_keys"] = list(data.keys())
 
         for event in chunk:
             if event.get('type') != 'm.room.message':
@@ -164,7 +145,7 @@ class RoomService:
             })
 
         messages.reverse()
-        return {"messages": messages, "total": len(messages), "debug": debug}
+        return {"messages": messages, "total": len(messages)}
 
     def mark_as_checked(self, room_id: int, notes: Optional[str] = None) -> Room:
         """
