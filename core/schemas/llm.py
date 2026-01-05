@@ -6,7 +6,7 @@ class MessageItem(Schema):
     """Single message item for LLM context."""
 
     sender: str
-    body: str
+    content: str
 
 
 class LLMContextRequest(Schema):
