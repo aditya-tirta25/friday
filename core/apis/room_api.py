@@ -50,9 +50,9 @@ def sync_rooms(request):
         result = room_service.sync_rooms(rooms_data)
 
         return RoomSyncResponse(
-            synced_count=result['synced_count'],
-            new_rooms=result['new_rooms'],
-            updated_rooms=result['updated_rooms'],
+            synced_count=result["synced_count"],
+            new_rooms=result["new_rooms"],
+            updated_rooms=result["updated_rooms"],
             message=f"Successfully synced {result['synced_count']} rooms",
         )
     except Exception as e:
@@ -73,7 +73,8 @@ def list_rooms(request, checked: Optional[bool] = None):
         rooms = room_service.get_all_rooms()
     elif checked:
         from core.models import Room
-        rooms = list(Room.objects.filter(is_checked=True).order_by('-created_at'))
+
+        rooms = list(Room.objects.filter(is_checked=True).order_by("-created_at"))
     else:
         rooms = room_service.get_unchecked_rooms()
 
@@ -97,18 +98,20 @@ def get_unchecked_rooms_summary(request):
     summary_data = room_service.generate_summary(rooms)
 
     todo_items = []
-    for item in summary_data.get('todo_list', []):
-        todo_items.append(TodoItem(
-            room_id=item.get('room_id', ''),
-            room_name=item.get('room_name'),
-            action=item.get('action', 'Review room'),
-            priority=item.get('priority', 'medium'),
-        ))
+    for item in summary_data.get("todo_list", []):
+        todo_items.append(
+            TodoItem(
+                room_id=item.get("room_id", ""),
+                room_name=item.get("room_name"),
+                action=item.get("action", "Review room"),
+                priority=item.get("priority", "medium"),
+            )
+        )
 
     return RoomSummaryResponse(
         rooms=[room_to_schema(r) for r in rooms],
         total_unchecked=len(rooms),
-        summary=summary_data.get('summary', ''),
+        summary=summary_data.get("summary", ""),
         todo_list=todo_items,
     )
 
@@ -135,7 +138,7 @@ def mark_room_checked(request, room_id: int, notes: Optional[str] = None):
         raise HttpError(404, f"Room not found: {str(e)}")
 
 
-@router.post("/summarize/{matrix_room_id:path}", response=ConversationSummaryResponse)
+@router.post("/summarize/{matrix_room_id}", response=ConversationSummaryResponse)
 def summarize_room_conversation(request, matrix_room_id: str):
     """
     Generate an AI summary of a room's conversation.
@@ -153,27 +156,28 @@ def summarize_room_conversation(request, matrix_room_id: str):
     try:
         matrix_service.login()
         result = room_service.summarize_room_conversation(
-            matrix_room_id=matrix_room_id,
-            matrix_service=matrix_service
+            matrix_room_id=matrix_room_id, matrix_service=matrix_service
         )
 
         action_items = []
-        for item in result.get('action_items', []):
-            action_items.append(ActionItem(
-                description=item.get('description', ''),
-                assignee=item.get('assignee'),
-                due_date=item.get('due_date'),
-                priority=item.get('priority', 'medium'),
-            ))
+        for item in result.get("action_items", []):
+            action_items.append(
+                ActionItem(
+                    description=item.get("description", ""),
+                    assignee=item.get("assignee"),
+                    due_date=item.get("due_date"),
+                    priority=item.get("priority", "medium"),
+                )
+            )
 
         return ConversationSummaryResponse(
-            room=room_to_schema(result['room']),
-            summary=result['summary'],
+            room=room_to_schema(result["room"]),
+            summary=result["summary"],
             action_items=action_items,
-            message_count=result['message_count'],
-            from_timestamp=result['from_timestamp'],
-            to_timestamp=result['to_timestamp'],
-            check_log_id=result['check_log_id'],
+            message_count=result["message_count"],
+            from_timestamp=result["from_timestamp"],
+            to_timestamp=result["to_timestamp"],
+            check_log_id=result["check_log_id"],
         )
     except ValueError as e:
         raise HttpError(404, str(e))
