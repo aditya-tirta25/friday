@@ -11,10 +11,12 @@ from core.schemas.room import (
     RoomMessagesRequest,
 )
 from core.schemas.llm import (
+    RoomInfo,
     MessageItem,
     LLMContextRequest,
     LLMContextResponse,
     LLMProcessResponse,
+    SendSummaryRequest,
 )
 
 __all__ = [
@@ -28,8 +30,10 @@ __all__ = [
     'ActionItem',
     'ConversationSummaryResponse',
     'RoomMessagesRequest',
+    'RoomInfo',
     'MessageItem',
     'LLMContextRequest',
     'LLMContextResponse',
     'LLMProcessResponse',
+    'SendSummaryRequest',
 ]

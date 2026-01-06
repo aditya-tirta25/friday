@@ -1,5 +1,6 @@
 import requests
 import urllib.parse
+import uuid
 from typing import Optional, List, Dict, Any
 from datetime import datetime
 from django.conf import settings
@@ -183,3 +184,39 @@ class MatrixService:
         messages.reverse()
 
         return messages
+
+    def send_message(
+        self,
+        room_id: str,
+        body: str,
+        msgtype: str = "m.text",
+        access_token: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """
+        Send a message to a Matrix room.
+
+        Args:
+            room_id: The Matrix room ID
+            body: The message body
+            msgtype: Message type (default: m.text)
+            access_token: Matrix access token (uses cached if not provided)
+
+        Returns:
+            Response with event_id
+        """
+        token = access_token or self.get_access_token()
+        encoded_room_id = urllib.parse.quote(room_id)
+        txn_id = str(uuid.uuid4())
+
+        url = f"{self.homeserver}/_matrix/client/v3/rooms/{encoded_room_id}/send/m.room.message/{txn_id}"
+        headers = {"Authorization": f"Bearer {token}"}
+
+        payload = {
+            "msgtype": msgtype,
+            "body": body,
+        }
+
+        response = requests.put(url, headers=headers, json=payload)
+        response.raise_for_status()
+
+        return response.json()

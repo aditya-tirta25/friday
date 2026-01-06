@@ -3,6 +3,8 @@ import requests
 from typing import List, Dict, Any
 from django.conf import settings
 
+from core.services.user import UserService
+
 
 class LLMService:
     """Service for LLM-related operations."""
@@ -24,17 +26,20 @@ class LLMService:
             model: Model to use for processing
 
         Returns:
-            Dict with summary, reply, needs_more_information, todo_list
+            Dict with room, summary, reply, needs_more_information, todo_list
         """
+        room = context.get("room", {})
         prompt = f"""You are an assistant analyzing a conversation. Here is the context:
 
 {json.dumps(context, indent=2)}
 
 IMPORTANT: When referring to senders in your response, you MUST use the names from sender_mapping.
-For example, if sender_mapping shows "@user:matrix.org": "yourself", refer to that sender as "kamu" or "you" (not "Pengirim" or generic terms).
-If sender_mapping shows a sender mapped to their own ID, use a friendly name based on that ID.
+- If sender_mapping shows a user mapped to "yourself", that is the owner/actor - refer to them as "kamu" or "you"
+- Other senders are mapped to their displayname - use these names directly in your response
+- Never use generic terms like "Pengirim", "Sender", or raw user IDs
 
-Based on the context above, provide a response following the output_format specified in the context."""
+Based on the context above, provide a response following the output_format specified in the context.
+Return ONLY valid JSON matching the output_format, no additional text."""
 
         headers = {
             "Authorization": f"Bearer {self.api_key}",
@@ -57,34 +62,66 @@ Based on the context above, provide a response following the output_format speci
             end_idx = content.rfind("}") + 1
             if start_idx != -1 and end_idx > start_idx:
                 result = json.loads(content[start_idx:end_idx])
+                result["room"] = room
                 return result
         except (json.JSONDecodeError, ValueError):
             pass
 
         return {
+            "room": room,
             "summary": content,
             "reply": None,
             "needs_more_information": False,
             "todo_list": [],
         }
 
-    def build_context(self, messages: List[Dict[str, str]]) -> Dict[str, Any]:
+    def _get_displayname(self, user_id: str, user_service: UserService) -> str:
+        """
+        Fetch displayname for a user from Matrix API.
+
+        Args:
+            user_id: The Matrix user ID
+            user_service: UserService instance
+
+        Returns:
+            Displayname if available, else empty string
+        """
+        try:
+            user_info = user_service.get_user_info(user_id)
+            return user_info.get("displayname", "")
+        except Exception:
+            return ""
+
+    def build_context(
+        self,
+        room: Dict[str, str],
+        messages: List[Dict[str, str]],
+        yourself: str,
+        access_token: str,
+    ) -> Dict[str, Any]:
         """
         Build LLM context from a list of messages.
 
         Args:
+            room: Dict with 'id', 'name', and 'platform' keys
             messages: List of dicts with 'sender' and 'content' keys
+            yourself: The user_id that represents "yourself"
+            access_token: Matrix access token for fetching user info
 
         Returns:
             Complete LLM context dictionary
         """
-        sender_mapping = {self.actor_id: "yourself"}
+        user_service = UserService(access_token=access_token)
+        sender_mapping = {yourself: "yourself"}
+
         for msg in messages:
             sender = msg.get("sender", "")
             if sender and sender not in sender_mapping:
-                sender_mapping[sender] = sender
+                displayname = self._get_displayname(sender, user_service)
+                sender_mapping[sender] = displayname if displayname else sender
 
         return {
+            "room": room,
             "messages": [
                 {"sender": m["sender"], "content": m["content"]} for m in messages
             ],
@@ -110,6 +147,7 @@ Based on the context above, provide a response following the output_format speci
                 "no_markdown": True,
             },
             "output_format": {
+                "room": "object with id, name, platform",
                 "summary": "string",
                 "reply": "string | null",
                 "needs_more_information": "boolean",
