@@ -84,4 +84,5 @@ class RoomMessagesRequest(Schema):
     """Request schema for fetching room messages."""
 
     room_id: str
+    room_name: str
     limit: int = 100

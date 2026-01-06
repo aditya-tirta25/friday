@@ -196,12 +196,14 @@ def get_room_messages(request, payload: RoomMessagesRequest):
 
     Body:
         room_id: The Matrix room ID (e.g., "!abc123:matrix.org")
+        room_name: The display name of the room
         limit: Maximum number of messages to fetch (default: 100)
     """
     room_service = RoomService()
 
     result = room_service.get_messages(
         room_id=payload.room_id,
+        room_name=payload.room_name,
         access_token=request.auth,
         limit=payload.limit,
     )

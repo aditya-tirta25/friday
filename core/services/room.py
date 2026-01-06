@@ -80,6 +80,7 @@ class RoomService:
     def get_messages(
         self,
         room_id: str,
+        room_name: str,
         access_token: str,
         limit: int = 100,
         from_timestamp: Optional[datetime] = None,
@@ -89,12 +90,13 @@ class RoomService:
 
         Args:
             room_id: The Matrix room ID (e.g., "!abc123:matrix.org")
+            room_name: The display name of the room
             access_token: Matrix access token for authentication
             limit: Maximum number of messages to fetch
             from_timestamp: Only fetch messages after this timestamp
 
         Returns:
-            Dictionary with messages and total count
+            Dictionary with room info, messages, and total count
         """
         homeserver = settings.MATRIX_CONFIG["HOMESERVER"]
         encoded_room_id = urllib.parse.quote(room_id)
@@ -144,7 +146,11 @@ class RoomService:
             )
 
         messages.reverse()
-        return {"messages": messages, "total": len(messages)}
+        return {
+            "room": {"id": room_id, "name": room_name},
+            "messages": messages,
+            "total": len(messages),
+        }
 
     def mark_as_checked(self, room_id: int, notes: Optional[str] = None) -> Room:
         """
