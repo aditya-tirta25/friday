@@ -9,7 +9,7 @@ from core.schemas.llm import (
     SendSummaryRequest,
 )
 from core.services.llm import LLMService
-from core.services.matrix_service import MatrixService
+from core.services.matrix import MatrixService
 
 router = Router()
 bearer_auth = BearerAuth()

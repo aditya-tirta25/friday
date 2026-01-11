@@ -1,5 +1,4 @@
-from core.services.matrix_service import MatrixService
-from core.services.room import RoomService
+from core.services.matrix import MatrixService, RoomService
 from core.services.whatsapp import WhatsAppService
 from core.services.llm import LLMService
 from core.services.user import UserService

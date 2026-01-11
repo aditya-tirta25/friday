@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+
+{% block title %}Sign in - Lidya{% endblock %}
+
+{% block auth_content %}
+<style>
+    .login-page {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        background: #FAFAF7;
+    }
+
+    .login-container {
+        width: 100%;
+        max-width: 380px;
+    }
+
+    .login-header {
+        text-align: center;
+        margin-bottom: 32px;
+    }
+
+    .login-logo {
+        width: 48px;
+        height: 48px;
+        background: #4A7C8B;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+    }
+
+    .login-logo svg {
+        width: 26px;
+        height: 26px;
+        color: white;
+    }
+
+    .login-header h1 {
+        font-size: 24px;
+        font-weight: 600;
+        color: #2B2B2B;
+        margin-bottom: 8px;
+    }
+
+    .login-header p {
+        color: #8A8A8A;
+        font-size: 15px;
+    }
+
+    .login-card {
+        background: white;
+        border: 1px solid #E8E8E4;
+        border-radius: 8px;
+        padding: 32px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+
+    .login-form .form-group {
+        margin-bottom: 20px;
+    }
+
+    .login-form .form-label {
+        display: block;
+        margin-bottom: 6px;
+        font-size: 14px;
+        font-weight: 500;
+        color: #2B2B2B;
+    }
+
+    .login-form .form-control {
+        width: 100%;
+        padding: 12px 14px;
+        font-size: 15px;
+        font-family: inherit;
+        border: 1px solid #E8E8E4;
+        border-radius: 6px;
+        background: white;
+        color: #2B2B2B;
+        transition: border-color 0.15s ease;
+    }
+
+    .login-form .form-control:focus {
+        outline: none;
+        border-color: #4A7C8B;
+    }
+
+    .login-form .form-control::placeholder {
+        color: #AAAAAA;
+    }
+
+    .login-form .btn-submit {
+        width: 100%;
+        padding: 12px;
+        background: #4A7C8B;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-size: 15px;
+        font-weight: 500;
+        font-family: inherit;
+        cursor: pointer;
+        transition: background 0.15s ease;
+    }
+
+    .login-form .btn-submit:hover {
+        background: #3D6A78;
+    }
+
+    .login-error {
+        background: #FAF0F0;
+        border: 1px solid #F0E0E0;
+        color: #8B4444;
+        padding: 12px 14px;
+        border-radius: 6px;
+        margin-bottom: 20px;
+        font-size: 14px;
+    }
+
+    .login-footer {
+        text-align: center;
+        margin-top: 24px;
+        color: #8A8A8A;
+        font-size: 13px;
+    }
+</style>
+
+<div class="login-page">
+    <div class="login-container">
+        <div class="login-header">
+            <div class="login-logo">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                </svg>
+            </div>
+            <h1>Welcome back</h1>
+            <p>Sign in to continue to Lidya</p>
+        </div>
+
+        <div class="login-card">
+            {% if messages %}
+            {% for message in messages %}
+            <div class="login-error">{{ message }}</div>
+            {% endfor %}
+            {% endif %}
+
+            {% if form.errors %}
+            <div class="login-error">
+                The username or password you entered is incorrect.
+            </div>
+            {% endif %}
+
+            <form method="post" class="login-form">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label class="form-label" for="id_username">Username</label>
+                    <input type="text" name="username" id="id_username" class="form-control" required autofocus>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="id_password">Password</label>
+                    <input type="password" name="password" id="id_password" class="form-control" required>
+                </div>
+                <button type="submit" class="btn-submit">Sign in</button>
+            </form>
+        </div>
+
+        <div class="login-footer">
+            Conversation intelligence, made simple.
+        </div>
+    </div>
+</div>
+{% endblock %}

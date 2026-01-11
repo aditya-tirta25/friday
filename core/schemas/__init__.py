@@ -1,5 +1,5 @@
 from core.schemas.auth import LoginResponse
-from core.schemas.room import (
+from core.schemas.matrix import (
     RoomSchema,
     RoomListResponse,
     RoomSyncResponse,

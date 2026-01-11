@@ -83,6 +83,8 @@ class ConversationSummaryResponse(Schema):
 class RoomMessagesRequest(Schema):
     """Request schema for fetching room messages."""
 
+    subscriber_id: int
     room_id: str
     room_name: str
+    platform: str = "whatsapp"
     limit: int = 100

@@ -1,4 +1,8 @@
 {
+  "rooms": {
+    "id": "room id",
+    "name": "room name"
+  }
   "messages": [
     {
       "sender": "@aditya:matrix.tirta.me", // use value of MATRIX_ACTOR_ID
@@ -9,6 +13,10 @@
       "content": "👏"
     }
   ],
+  "previous_messages": {
+    "summary": "this is the summary of previous processed",
+    "todo_list": "the todolist from previous ai conversation"
+  }
   "sender_mapping": {
     "@aditya:matrix.tirta.me" // use value of MATRIX_ACTOR_ID: "yourself",
     "default": "use_sender_value"

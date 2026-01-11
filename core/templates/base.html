@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Lidya{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #FAFAF7;
+            --bg-card: #FFFFFF;
+            --text: #2B2B2B;
+            --text-secondary: #5C5C5C;
+            --text-muted: #8A8A8A;
+            --border: #E8E8E4;
+            --accent: #4A7C8B;
+            --accent-light: #E8F1F3;
+            --success: #5B8A5B;
+            --success-light: #EDF5ED;
+            --warning: #C9A227;
+            --warning-light: #FBF7E8;
+            --shadow: 0 1px 3px rgba(0,0,0,0.04);
+            --radius: 6px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Source Sans 3', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.65;
+            font-size: 16px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        /* Header */
+        .header {
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border);
+            padding: 0 24px;
+        }
+
+        .header-inner {
+            max-width: 800px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 60px;
+        }
+
+        .logo {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logo:hover {
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            width: 28px;
+            height: 28px;
+            background: var(--accent);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .logo-icon svg {
+            width: 16px;
+            height: 16px;
+            color: white;
+        }
+
+        .nav {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .nav a {
+            color: var(--text-secondary);
+            font-size: 15px;
+            padding: 6px 0;
+            border-bottom: 2px solid transparent;
+            text-decoration: none;
+        }
+
+        .nav a:hover {
+            color: var(--text);
+            text-decoration: none;
+        }
+
+        .nav a.active {
+            color: var(--text);
+            border-bottom-color: var(--accent);
+        }
+
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .user-name {
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        .btn-logout {
+            font-size: 14px;
+            color: var(--text-muted);
+            text-decoration: none;
+            padding: 6px 12px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            transition: all 0.15s ease;
+        }
+
+        .btn-logout:hover {
+            background: var(--bg);
+            color: var(--text);
+            text-decoration: none;
+        }
+
+        /* Main Content */
+        .main {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 48px 24px 80px;
+        }
+
+        /* Page Title */
+        .page-title {
+            margin-bottom: 8px;
+            font-size: 28px;
+            font-weight: 600;
+            color: var(--text);
+            letter-spacing: -0.01em;
+        }
+
+        .page-subtitle {
+            color: var(--text-muted);
+            font-size: 16px;
+            margin-bottom: 40px;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+        }
+
+        .card-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            font-weight: 500;
+            color: var(--text);
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        /* Stats - simple row */
+        .stats-row {
+            display: flex;
+            gap: 32px;
+            margin-bottom: 40px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .stat {
+            display: flex;
+            align-items: baseline;
+            gap: 6px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        .stat.pending .stat-value { color: var(--warning); }
+        .stat.done .stat-value { color: var(--success); }
+
+        /* Section */
+        .section {
+            margin-bottom: 48px;
+        }
+
+        .section-title {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin-bottom: 16px;
+        }
+
+        /* Todo List */
+        .todo-list {
+            list-style: none;
+        }
+
+        .todo-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 16px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .todo-item:last-child {
+            border-bottom: none;
+        }
+
+        .todo-checkbox {
+            flex-shrink: 0;
+            width: 20px;
+            height: 20px;
+            margin-top: 2px;
+            border: 2px solid var(--border);
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s ease;
+        }
+
+        .todo-checkbox:hover {
+            border-color: var(--accent);
+        }
+
+        .todo-checkbox.checked {
+            background: var(--success);
+            border-color: var(--success);
+        }
+
+        .todo-checkbox svg {
+            width: 12px;
+            height: 12px;
+            color: white;
+            opacity: 0;
+        }
+
+        .todo-checkbox.checked svg {
+            opacity: 1;
+        }
+
+        .todo-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .todo-title {
+            color: var(--text);
+            line-height: 1.4;
+        }
+
+        .todo-item.done .todo-title {
+            color: var(--text-muted);
+            text-decoration: line-through;
+        }
+
+        .todo-meta {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .todo-actions {
+            display: flex;
+            gap: 8px;
+            opacity: 0;
+            transition: opacity 0.15s ease;
+        }
+
+        .todo-item:hover .todo-actions {
+            opacity: 1;
+        }
+
+        .todo-action {
+            padding: 4px 8px;
+            font-size: 12px;
+            color: var(--text-muted);
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .todo-action:hover {
+            background: var(--bg-card);
+            color: var(--text);
+        }
+
+        .todo-action.danger:hover {
+            color: #B44;
+        }
+
+        /* Badges */
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            font-size: 12px;
+            font-weight: 500;
+            border-radius: 10px;
+        }
+
+        .badge-pending {
+            background: var(--warning-light);
+            color: #8B7020;
+        }
+
+        .badge-done {
+            background: var(--success-light);
+            color: #4A724A;
+        }
+
+        .badge-cancelled {
+            background: var(--bg);
+            color: var(--text-muted);
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            font-size: 14px;
+            font-weight: 500;
+            border-radius: var(--radius);
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.15s ease;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #3D6A78;
+            text-decoration: none;
+        }
+
+        .btn-secondary {
+            background: var(--bg-card);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg);
+            text-decoration: none;
+        }
+
+        /* Forms */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px 12px;
+            font-size: 15px;
+            font-family: inherit;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            background: var(--bg-card);
+            color: var(--text);
+            transition: border-color 0.15s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .form-control::placeholder {
+            color: var(--text-muted);
+        }
+
+        /* Filter bar */
+        .filter-bar {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 24px;
+        }
+
+        .filter-bar .form-control {
+            width: auto;
+            min-width: 160px;
+        }
+
+        /* Messages */
+        .messages {
+            margin-bottom: 24px;
+        }
+
+        .alert {
+            padding: 12px 16px;
+            border-radius: var(--radius);
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .alert-success {
+            background: var(--success-light);
+            color: #4A724A;
+        }
+
+        .alert-error {
+            background: #FAF0F0;
+            color: #8B4444;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+        }
+
+        .empty-state h3 {
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .empty-state p {
+            font-size: 14px;
+        }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            gap: 4px;
+            justify-content: center;
+            margin-top: 32px;
+        }
+
+        .pagination a,
+        .pagination span {
+            padding: 8px 12px;
+            font-size: 14px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            color: var(--text-secondary);
+            text-decoration: none;
+        }
+
+        .pagination a:hover {
+            background: var(--bg);
+            text-decoration: none;
+        }
+
+        .pagination .current {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: white;
+        }
+
+        /* Utilities */
+        .text-muted { color: var(--text-muted); }
+        .text-small { font-size: 13px; }
+        .mt-16 { margin-top: 16px; }
+        .mb-24 { margin-bottom: 24px; }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .header-inner { height: 56px; }
+            .nav { gap: 16px; }
+            .main { padding: 32px 16px 60px; }
+            .stats-row { gap: 20px; flex-wrap: wrap; }
+            .filter-bar { flex-direction: column; }
+            .filter-bar .form-control { width: 100%; }
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    {% if user.is_authenticated %}
+    <header class="header">
+        <div class="header-inner">
+            <a href="{% url 'dashboard' %}" class="logo">
+                <div class="logo-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                    </svg>
+                </div>
+                Lidya
+            </a>
+
+            <nav class="nav">
+                <a href="{% url 'dashboard' %}" class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">Home</a>
+                <a href="{% url 'todo_list' %}" class="{% if request.resolver_match.url_name == 'todo_list' %}active{% endif %}">Tasks</a>
+                <a href="{% url 'admin:index' %}">Settings</a>
+            </nav>
+
+            <div class="user-menu">
+                <span class="user-name">{{ user.username }}</span>
+                <a href="{% url 'logout' %}" class="btn-logout">Sign out</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="main">
+        {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% block content %}{% endblock %}
+    </main>
+    {% else %}
+    {% block auth_content %}{% endblock %}
+    {% endif %}
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

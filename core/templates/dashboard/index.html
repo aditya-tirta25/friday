@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Lidya{% endblock %}
+
+{% block content %}
+<h1 class="page-title">Good to see you, {{ user.username }}</h1>
+<p class="page-subtitle">Here's what's happening with your conversations.</p>
+
+<!-- Quick stats -->
+<div class="stats-row">
+    <div class="stat">
+        <span class="stat-value">{{ todo_stats.total|default:0 }}</span>
+        <span class="stat-label">tasks total</span>
+    </div>
+    <div class="stat pending">
+        <span class="stat-value">{{ todo_stats.pending|default:0 }}</span>
+        <span class="stat-label">pending</span>
+    </div>
+    <div class="stat done">
+        <span class="stat-value">{{ todo_stats.done|default:0 }}</span>
+        <span class="stat-label">completed</span>
+    </div>
+    <div class="stat">
+        <span class="stat-value">{{ room_count }}</span>
+        <span class="stat-label">rooms monitored</span>
+    </div>
+</div>
+
+<!-- Up next section -->
+<div class="section">
+    <h2 class="section-title">Up next</h2>
+
+    {% if recent_todos %}
+    <div class="card">
+        <ul class="todo-list" style="padding: 8px 20px;">
+            {% for todo in recent_todos %}
+            <li class="todo-item {% if todo.status == 'done' %}done{% endif %}">
+                <div class="todo-checkbox {% if todo.status == 'done' %}checked{% endif %}" onclick="toggleTodo({{ todo.id }}, '{% if todo.status == 'done' %}pending{% else %}done{% endif %}')">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                    </svg>
+                </div>
+                <div class="todo-content">
+                    <div class="todo-title">{{ todo.description }}</div>
+                    <div class="todo-meta">{{ todo.room.room_name|default:todo.room.room_id|truncatechars:30 }}</div>
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    <p class="text-small text-muted mt-16">
+        <a href="{% url 'todo_list' %}">See all tasks</a>
+    </p>
+    {% else %}
+    <div class="card">
+        <div class="empty-state">
+            <h3>Nothing to do here yet</h3>
+            <p>That's a good place to be. Tasks will appear as they're extracted from your conversations.</p>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Recent activity section -->
+<div class="section">
+    <h2 class="section-title">Recent summaries</h2>
+
+    {% if recent_summaries %}
+    <div class="card">
+        <ul class="todo-list" style="padding: 8px 20px;">
+            {% for summary in recent_summaries %}
+            <li class="todo-item" style="border-bottom-color: var(--border);">
+                <div class="todo-content">
+                    <div class="todo-title" style="font-weight: 500;">{{ summary.room.room_name|default:summary.room.room_id|truncatechars:40 }}</div>
+                    <div class="todo-meta">{{ summary.summary|truncatechars:100 }}</div>
+                    <div class="todo-meta" style="margin-top: 6px;">
+                        {{ summary.message_count }} messages &middot; {{ summary.created_at|date:"M d, g:i A" }}
+                    </div>
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% else %}
+    <div class="card">
+        <div class="empty-state">
+            <h3>No summaries yet</h3>
+            <p>When you request summaries from your conversations, they'll show up here.</p>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+async function toggleTodo(todoId, newStatus) {
+    try {
+        const response = await fetch(`/api/todos/${todoId}/status`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: newStatus })
+        });
+        if (response.ok) {
+            location.reload();
+        }
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+</script>
+{% endblock %}

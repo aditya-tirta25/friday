@@ -1,4 +1,5 @@
-from typing import Optional, List
+from datetime import datetime
+from typing import Optional
 from ninja import Router
 from ninja.errors import HttpError
 
@@ -14,6 +15,7 @@ from core.schemas import (
     ConversationSummaryResponse,
     RoomMessagesRequest,
 )
+from core.models import Subscriber, SubscriberRoom
 from core.services import MatrixService, RoomService
 
 router = Router()
@@ -192,19 +194,50 @@ def get_room_messages(request, payload: RoomMessagesRequest):
     """
     Get messages from a specific Matrix room.
 
+    Fetches messages starting from last_read_at timestamp if available.
+    Updates last_read_at after successful fetch.
+
     Requires Authorization header with Bearer token.
 
     Body:
+        subscriber_id: ID of the subscriber
         room_id: The Matrix room ID (e.g., "!abc123:matrix.org")
         room_name: The display name of the room
+        platform: Platform type (whatsapp, teams, matrix)
         limit: Maximum number of messages to fetch (default: 100)
     """
+
     room_service = RoomService()
+
+    try:
+        subscriber = Subscriber.objects.get(id=payload.subscriber_id)
+    except Subscriber.DoesNotExist:
+        raise HttpError(404, f"Subscriber not found: {payload.subscriber_id}")
+
+    subscriber_room, created = SubscriberRoom.objects.get_or_create(
+        subscriber=subscriber,
+        room_id=payload.room_id,
+        defaults={
+            "platform": payload.platform,
+            "room_name": payload.room_name,
+        },
+    )
+
+    from_timestamp = subscriber_room.last_read_at
 
     result = room_service.get_messages(
         room_id=payload.room_id,
         room_name=payload.room_name,
         access_token=request.auth,
         limit=payload.limit,
+        from_timestamp=from_timestamp,
     )
+
+    if result.get("messages"):
+        last_message = result["messages"][-1]
+        last_ts = datetime.fromisoformat(last_message["timestamp"])
+        subscriber_room.last_read_at = last_ts
+        subscriber_room.room_name = payload.room_name
+        subscriber_room.save()
+
     return result

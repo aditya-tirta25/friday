@@ -15,9 +15,9 @@ class Room(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ['-created_at']
-        verbose_name = 'Room'
-        verbose_name_plural = 'Rooms'
+        ordering = ["-created_at"]
+        verbose_name = "Room"
+        verbose_name_plural = "Rooms"
 
     def __str__(self):
         return f"{self.name or self.room_id} ({self.creator})"
@@ -26,19 +26,20 @@ class Room(models.Model):
 class RoomCheckLog(models.Model):
     """Line item to track room check history with summaries."""
 
-    room = models.ForeignKey(
-        Room,
-        on_delete=models.CASCADE,
-        related_name='check_logs'
-    )
+    room = models.ForeignKey(Room, on_delete=models.CASCADE, related_name="check_logs")
     checked_at = models.DateTimeField(auto_now_add=True)
     summary = models.TextField(blank=True, null=True)
     notes = models.TextField(blank=True, null=True)
 
     class Meta:
-        ordering = ['-checked_at']
-        verbose_name = 'Room Check Log'
-        verbose_name_plural = 'Room Check Logs'
+        ordering = ["-checked_at"]
+        verbose_name = "Room Check Log"
+        verbose_name_plural = "Room Check Logs"
 
     def __str__(self):
         return f"Check for {self.room.room_id} at {self.checked_at}"
+
+
+# class RoomMessageMeta(models.Model):
+#     """Room Message Model to track the read history and context understanding history of each message read"""
+#     room = models.ForeignKey("SubscriberRoom",on_delete=models.CASCADE)
