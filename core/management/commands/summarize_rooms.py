@@ -99,6 +99,9 @@ class Command(BaseCommand):
         command, args = self.parse_command(message_body)
 
         if not command:
+            # Check if it looks like a command attempt
+            if self.looks_like_command(message_body):
+                self.handle_unknown_command(subscriber)
             return
 
         self.stdout.write(f"Command '{command}' from subscriber {subscriber.id}")
@@ -125,6 +128,19 @@ class Command(BaseCommand):
                 args = match.groups() if match.groups() else None
                 return cmd_name, args
         return None, None
+
+    def looks_like_command(self, message_body):
+        """Check if message looks like a command attempt."""
+        command_prefixes = ["help", "rooms", "room", "summary", "todo", "task", "tasks"]
+        first_word = message_body.split()[0] if message_body.split() else ""
+        return first_word in command_prefixes
+
+    def handle_unknown_command(self, subscriber):
+        """Handle unrecognized command with helpful response."""
+        self.matrix_service.send_message(
+            room_id=subscriber.matrix_room_id,
+            body="Sorry, I didn't recognize that command. Type 'help' to see what I can do.",
+        )
 
     def handle_help(self, subscriber):
         """Show available commands."""
