@@ -4,7 +4,6 @@ from datetime import datetime
 from typing import List, Dict, Any, Optional
 
 from django.conf import settings
-from django.db.models import F
 from django.utils import timezone
 
 from core.models import GeneralSettings, TodoList
@@ -274,13 +273,11 @@ Return ONLY valid JSON matching the output_format, no additional text."""
         """
         from core.models import (
             ConversationProcessingState,
-            RoomDailySummaryCount,
             RoomSummary,
         )
 
         room = state.room
         now = timezone.now()
-        today = now.date()
 
         # Extract metadata
         metadata = context.pop("_metadata", {})
@@ -356,16 +353,6 @@ Return ONLY valid JSON matching the output_format, no additional text."""
                 "failure_reason",
                 "updated_at",
             ]
-        )
-
-        # Increment daily summary count atomically
-        daily_count, _ = RoomDailySummaryCount.objects.get_or_create(
-            room=room,
-            date=today,
-            defaults={"count": 0},
-        )
-        RoomDailySummaryCount.objects.filter(pk=daily_count.pk).update(
-            count=F("count") + 1
         )
 
         return summary

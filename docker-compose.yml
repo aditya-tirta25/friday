@@ -17,7 +17,7 @@ services:
   friday:
     image: friday:latest
     container_name: friday
-    command: python manage.py runserver 0.0.0.0:8000    
+    command: python manage.py runserver 0.0.0.0:8000
     volumes:
       - .:/home/django/app
       # - static_volume:/home/django/app/staticfiles
@@ -27,5 +27,17 @@ services:
     restart: always
     ports:
       - "9001:8000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  worker:
+    image: friday:latest
+    container_name: friday_worker
+    command: python manage.py summarize_rooms
+    volumes:
+      - .:/home/django/app
+    depends_on:
+      - init
+    restart: always
     extra_hosts:
       - "host.docker.internal:host-gateway"

@@ -131,7 +131,7 @@ class Command(BaseCommand):
 
     def looks_like_command(self, message_body):
         """Check if message looks like a command attempt."""
-        command_prefixes = ["help", "rooms", "room", "summary", "todo", "task", "tasks"]
+        command_prefixes = ["help", "rooms", "room", "summary", "todo", "todos", "task", "tasks"]
         first_word = message_body.split()[0] if message_body.split() else ""
         return first_word in command_prefixes
 
